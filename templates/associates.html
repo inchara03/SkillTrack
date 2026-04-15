@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Associates - SkillTrack{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <h2 class="mb-4"><i class="fas fa-users"></i> Associates Directory</h2>
+
+        <!-- Search Bar -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input 
+                            type="text" 
+                            class="form-control form-control-lg" 
+                            id="searchInput" 
+                            placeholder="Search by name, skill, or role..."
+                        >
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-control form-control-lg" id="filterType">
+                            <option value="all">Search All Fields</option>
+                            <option value="name">Name</option>
+                            <option value="skill">Skills</option>
+                            <option value="role">Role</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary btn-lg w-100" onclick="performSearch()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Associates List -->
+<div class="row" id="associatesList">
+    <div class="col-12">
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">View Details & Assign Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="editFormContainer">
+                <!-- Form will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Certificate Modal -->
+<div class="modal fade" id="certModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Certificate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCertForm">
+                    <input type="hidden" id="certAssociateId">
+
+                    <div class="mb-3">
+                        <label for="certName" class="form-label">Certificate Name *</label>
+                        <input type="text" class="form-control" id="certName" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="issueDate" class="form-label">Issue Date</label>
+                            <input type="date" class="form-control" id="issueDate">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="expiryDate" class="form-label">Expiry Date *</label>
+                            <input type="date" class="form-control" id="expiryDate" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="issuingOrg" class="form-label">Issuing Organization</label>
+                        <input type="text" class="form-control" id="issuingOrg" placeholder="e.g., AWS, Google, Microsoft">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save"></i> Add Certificate
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .associate-card {
+        transition: all 0.3s;
+    }
+
+    .associate-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .cert-badge {
+        display: inline-block;
+        margin: 5px 5px 5px 0;
+    }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let editModal, certModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        certModal = new bootstrap.Modal(document.getElementById('certModal'));
+        
+        loadAssociates();
+
+        // Add Enter key support for search
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // Certificate form submission
+        document.getElementById('addCertForm').addEventListener('submit', addCertificate);
+    });
+
+    async function loadAssociates() {
+        try {
+            const response = await fetch('/api/associates');
+            const associates = await response.json();
+            displayAssociates(associates);
+        } catch (error) {
+            alert('Error loading associates: ' + error.message);
+        }
+    }
+
+    async function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (!query) {
+            loadAssociates();
+            return;
+        }
+
+        const searchType = document.getElementById('filterType').value;
+
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${searchType}`);
+            const results = await response.json();
+            displayAssociates(results);
+        } catch (error) {
+            alert('Error searching: ' + error.message);
+        }
+    }
+
+    function displayAssociates(associates) {
+        const container = document.getElementById('associatesList');
+
+        if (associates.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> No associates found.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        associates.forEach(assoc => {
+            const certsHtml = assoc.certificates.map(cert => {
+                const statusClass = cert.status === 'Active' ? 'success' : 
+                                   cert.status === 'Expiring Soon' ? 'warning' : 'danger';
+                return `
+                    <span class="badge bg-${statusClass} cert-badge">
+                        ${cert.name} (${cert.status})
+                    </span>
+                `;
+            }).join('');
+
+            html += `
+                <div class="col-lg-6 mb-4">
+                    <div class="card associate-card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-user-circle text-primary"></i> ${assoc.name}
+                            </h5>
+                            <p class="text-muted small mb-2">${assoc.role}</p>
+                            
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Email:</strong> ${assoc.email || 'N/A'}</p>
+                                <p class="mb-1"><strong>Phone:</strong> ${assoc.phone || 'N/A'}</p>
+                                <p class="mb-1"><strong>Department:</strong> ${assoc.department || 'N/A'}</p>
+                                <p class="mb-1"><strong>Experience:</strong> ${assoc.experience} years</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Project Status:</strong><br>
+                                <span class="badge ${assoc.project_status === 'Assigned' ? 'bg-primary' : assoc.project_status === 'Working' ? 'bg-success' : assoc.project_status === 'On Leave' ? 'bg-warning' : assoc.project_status === 'Available' ? 'bg-info' : 'bg-secondary'}">${assoc.project_status || 'Not Assigned'}</span>
+                                ${assoc.project_name && assoc.project_status === 'Assigned' ? `<p class="mt-2 mb-0"><strong>Project:</strong> <span class="badge bg-light text-dark">${assoc.project_name}</span></p>` : assoc.project_name ? `<p class="mt-1 mb-0 small"><strong>Project:</strong> ${assoc.project_name}</p>` : ''}
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Skills:</strong><br>
+                                <small class="text-muted">${assoc.skills}</small>
+                            </div>
+
+                            ${certsHtml ? `
+                                <div class="mb-3">
+                                    <strong>Certificates:</strong><br>
+                                    ${certsHtml}
+                                </div>
+                            ` : '<p class="text-muted small">No certificates added</p>'}
+
+                            <div class="mt-3 d-flex gap-2">
+                                <button class="btn btn-sm btn-primary flex-grow-1" onclick="openEditModal(${assoc.id})">
+                                    <i class="fas fa-briefcase"></i> Assign Project
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteAssociate(${assoc.id})">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    async function openEditModal(associateId) {
+        try {
+            const response = await fetch(`/api/associate/${associateId}`);
+            const assoc = await response.json();
+
+            const form = `
+                <form id="editAssociateForm" data-id="${associateId}">
+                    <!-- READ-ONLY SECTION -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="text-muted mb-3">Associate Information (View Only)</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label text-muted">Full Name</label>
+                                <p class="form-control-plaintext">${assoc.name}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label text-muted">Email</label>
+                                <p class="form-control-plaintext">${assoc.email || 'N/A'}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label text-muted">Phone</label>
+                                <p class="form-control-plaintext">${assoc.phone || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label text-muted">Role</label>
+                                <p class="form-control-plaintext">${assoc.role}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label text-muted">Department</label>
+                                <p class="form-control-plaintext">${assoc.department || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label text-muted">Experience</label>
+                                <p class="form-control-plaintext">${assoc.experience} years</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label text-muted">Skills</label>
+                            <p class="form-control-plaintext">${assoc.skills}</p>
+                        </div>
+                    </div>
+
+                    <!-- EDITABLE SECTION -->
+                    <hr>
+                    <h6 class="mb-3 text-primary">Assign to Project</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Project Status *</label>
+                        <select class="form-control" id="editProjectStatus" required>
+                            <option value="Assigned" ${assoc.project_status === 'Assigned' ? 'selected' : ''}>Assigned</option>
+                            <option value="Working" ${assoc.project_status === 'Working' ? 'selected' : ''}>Working</option>
+                            <option value="Available" ${assoc.project_status === 'Available' ? 'selected' : ''}>Available</option>
+                            <option value="On Leave" ${assoc.project_status === 'On Leave' ? 'selected' : ''}>On Leave</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="editProjectName" placeholder="e.g., Project Alpha, Client XYZ" value="${assoc.project_name || ''}">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-check"></i> Update Project Assignment
+                    </button>
+                </form>
+            `;
+
+            document.getElementById('editFormContainer').innerHTML = form;
+            document.getElementById('editAssociateForm').addEventListener('submit', updateAssociateProject);
+            editModal.show();
+        } catch (error) {
+            alert('Error loading associate: ' + error.message);
+        }
+    }
+
+    async function updateAssociateProject(e) {
+        e.preventDefault();
+        const associateId = document.getElementById('editAssociateForm').dataset.id;
+
+        const data = {
+            project_status: document.getElementById('editProjectStatus').value,
+            project_name: document.getElementById('editProjectName').value
+        };
+
+        try {
+            const response = await fetch(`/api/update-project-assignment/${associateId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Project assignment updated successfully!');
+                editModal.hide();
+                loadAssociates();
+            } else {
+                const error = await response.json();
+                alert('Error: ' + (error.error || 'Failed to update'));
+            }
+        } catch (error) {
+            alert('Error updating project assignment: ' + error.message);
+        }
+    }
+
+    function openCertModal(associateId) {
+        document.getElementById('certAssociateId').value = associateId;
+        document.getElementById('addCertForm').reset();
+        certModal.show();
+    }
+
+    async function addCertificate(e) {
+        e.preventDefault();
+
+        const data = {
+            associate_id: parseInt(document.getElementById('certAssociateId').value),
+            certificate_name: document.getElementById('certName').value,
+            issue_date: document.getElementById('issueDate').value,
+            expiry_date: document.getElementById('expiryDate').value,
+            issuing_organization: document.getElementById('issuingOrg').value
+        };
+
+        try {
+            const response = await fetch('/api/add_certificate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Certificate added successfully!');
+                certModal.hide();
+                loadAssociates();
+            }
+        } catch (error) {
+            alert('Error adding certificate: ' + error.message);
+        }
+    }
+
+    async function deleteAssociate(associateId) {
+        if (!confirm('Are you sure you want to delete this associate?')) return;
+
+        try {
+            const response = await fetch(`/api/associate/${associateId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Associate deleted successfully!');
+                loadAssociates();
+            }
+        } catch (error) {
+            alert('Error deleting associate: ' + error.message);
+        }
+    }
+</script>
+{% endblock %}

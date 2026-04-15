@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Add My Details - SkillTrack{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+        <h2 class="mb-4"><i class="fas fa-user-plus"></i> Add Your Profile Details</h2>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form id="userAddAssociateForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">Role/Position *</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="Software Developer">Software Developer</option>
+                                <option value="Data Analyst">Data Analyst</option>
+                                <option value="QA Engineer">QA Engineer</option>
+                                <option value="DevOps Engineer">DevOps Engineer</option>
+                                <option value="Product Manager">Product Manager</option>
+                                <option value="Project Manager">Project Manager</option>
+                                <option value="Business Analyst">Business Analyst</option>
+                                <option value="System Administrator">System Administrator</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3" id="customRoleField" style="display: none;">
+                        <label for="customRole" class="form-label">Enter Custom Role *</label>
+                        <input type="text" class="form-control" id="customRole" name="customRole" placeholder="e.g., Solutions Architect, Scrum Master">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">Department *</label>
+                            <select class="form-control" id="department" name="department" required>
+                                <option value="">Select Department</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Finance">Finance</option>
+                                <option value="HR">HR</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Support">Support</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="experience" class="form-label">Years of Experience *</label>
+                            <input type="number" class="form-control" id="experience" name="experience" min="0" max="100" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="skills" class="form-label">Skills (comma-separated) *</label>
+                        <textarea class="form-control" id="skills" name="skills" rows="3" placeholder="e.g., Python, JavaScript, SQL, AWS, Docker" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="project_status" class="form-label">Working Status *</label>
+                            <select class="form-control" id="project_status" name="project_status" required>
+                                <option value="Not Assigned">Not Assigned</option>
+                                <option value="Working">Working</option>
+                                <option value="On Leave">On Leave</option>
+                                <option value="Available">Available</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="project_name" class="form-label">Project Name</label>
+                            <input type="text" class="form-control" id="project_name" name="project_name" placeholder="e.g., Project Alpha, Client XYZ">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-3">
+                        <strong>Note:</strong> Your name and email will be automatically filled from your account.
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> Save My Details
+                        </button>
+                        <a href="/user/dashboard" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="alert alert-success mt-4" style="display: none;">
+            <h4 class="alert-heading">Success!</h4>
+            <p id="successText"></p>
+            <hr>
+            <p class="mb-0">
+                <a href="/user/dashboard" class="btn btn-sm btn-primary">Back to Dashboard</a>
+            </p>
+        </div>
+
+        <!-- Certificate Section - Optional: Show after profile submission -->
+        <div id="certificateSectionContainer" class="mt-5" style="display: none;">
+            <h3 class="mb-4"><i class="fas fa-certificate"></i> Add Certificates (Optional)</h3>
+            <p class="text-muted mb-4">You can add certificates here. Leave blank if you want to add them later.</p>
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form id="addCertificateForm">
+                        <input type="hidden" id="cert_associate_id">
+                        
+                        <div class="mb-3">
+                            <label for="certificate_name" class="form-label">Certificate Name</label>
+                            <input type="text" class="form-control" id="certificate_name" name="certificate_name" placeholder="e.g., AWS Solutions Architect, PMP, CCNA">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="issuing_organization" class="form-label">Issuing Organization</label>
+                                <input type="text" class="form-control" id="issuing_organization" name="issuing_organization" placeholder="e.g., Amazon Web Services, PMI">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="issue_date" class="form-label">Issue Date</label>
+                                <input type="date" class="form-control" id="issue_date" name="issue_date">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiry_date" class="form-label">Expiry Date</label>
+                                <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="certificate_url" class="form-label">Certificate URL</label>
+                                <input type="url" class="form-control" id="certificate_url" name="certificate_url" placeholder="https://...">
+                            </div>
+                        </div>
+
+                        <div id="certificatesList" class="mb-4"></div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" id="addCertBtn" class="btn btn-success btn-lg">
+                                <i class="fas fa-plus-circle"></i> Add Another Certificate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-3 d-grid gap-2">
+                <button id="finishBtn" class="btn btn-primary btn-lg">
+                    <i class="fas fa-check"></i> Done - Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let certificatesAdded = [];
+
+    // Handle Role Selection - Show/Hide Custom Role Field
+    document.getElementById('role').addEventListener('change', (e) => {
+        const customRoleField = document.getElementById('customRoleField');
+        if (e.target.value === 'Other') {
+            customRoleField.style.display = 'block';
+            document.getElementById('customRole').focus();
+        } else {
+            customRoleField.style.display = 'none';
+            document.getElementById('customRole').value = '';
+        }
+    });
+
+    // Handle Form Submission
+    document.getElementById('userAddAssociateForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Get role value - use custom role if "Other" is selected
+        let roleValue = document.getElementById('role').value;
+        if (roleValue === 'Other') {
+            const customRole = document.getElementById('customRole').value.trim();
+            if (!customRole) {
+                alert('Please enter a custom role.');
+                document.getElementById('customRole').focus();
+                return;
+            }
+            roleValue = customRole;
+        }
+
+        const formData = {
+            phone: document.getElementById('phone').value,
+            role: roleValue,
+            department: document.getElementById('department').value,
+            experience: parseInt(document.getElementById('experience').value),
+            skills: document.getElementById('skills').value,
+            project_status: document.getElementById('project_status').value,
+            project_name: document.getElementById('project_name').value
+        };
+
+        try {
+            const response = await fetch('/user/add-associate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Store associate ID for certificates
+                document.getElementById('cert_associate_id').value = data.associate_id;
+                
+                // Show certificate section
+                document.getElementById('userAddAssociateForm').style.display = 'none';
+                const messageText = data.message.includes('updated') ? 
+                    'Your profile has been updated successfully!' : 
+                    'Your profile has been added successfully!';
+                document.getElementById('successText').innerHTML = `
+                    <strong>${messageText}</strong><br>
+                    Your details are now in the system and visible to managers.
+                `;
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Show certificate section
+                document.getElementById('certificateSectionContainer').style.display = 'block';
+                certificatesAdded = [];
+                updateCertificatesList();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+                console.error('Server error:', data);
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+            console.error('Fetch error:', error);
+        }
+    });
+
+    // Add certificate button click handler
+    document.getElementById('addCertBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        // Check if at least one field is filled
+        const certName = document.getElementById('certificate_name').value.trim();
+        const certOrg = document.getElementById('issuing_organization').value.trim();
+        const certDate = document.getElementById('issue_date').value;
+
+        if (!certName && !certOrg && !certDate) {
+            // No certificate data filled, just proceed to finish
+            finishAddingCertificates();
+            return;
+        }
+
+        // Validate that required fields are filled if any field is filled
+        if ((certName || certOrg || certDate) && !(certName && certOrg && certDate)) {
+            alert('Please fill in Certificate Name, Organization, and Issue Date to add a certificate.');
+            return;
+        }
+
+        const certData = {
+            associate_id: parseInt(document.getElementById('cert_associate_id').value),
+            certificate_name: certName,
+            issuing_organization: certOrg,
+            issue_date: certDate,
+            expiry_date: document.getElementById('expiry_date').value || null,
+            certificate_url: document.getElementById('certificate_url').value || null
+        };
+
+        try {
+            const response = await fetch('/api/add_certificate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(certData)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                certificatesAdded.push({
+                    id: data.id,
+                    name: certData.certificate_name,
+                    organization: certData.issuing_organization,
+                    expiry_date: certData.expiry_date
+                });
+
+                // Reset form
+                document.getElementById('addCertificateForm').reset();
+                document.getElementById('certificate_name').focus();
+
+                // Update the certificates list display
+                updateCertificatesList();
+            } else {
+                const errorData = await response.json();
+                alert('Error adding certificate: ' + (errorData.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+
+    // Update certificates list display
+    function updateCertificatesList() {
+        const listDiv = document.getElementById('certificatesList');
+        if (certificatesAdded.length === 0) {
+            listDiv.innerHTML = '';
+            return;
+        }
+
+        let html = '<div class="mb-3"><h5 class="mb-2"><i class="fas fa-list"></i> Added Certificates:</h5><div class="list-group">';
+        certificatesAdded.forEach((cert, index) => {
+            html += `
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${cert.name}</h6>
+                        <small class="text-muted">${cert.organization}</small>
+                    </div>
+                    ${cert.expiry_date ? `<small class="text-muted">Expires: ${cert.expiry_date}</small>` : '<small class="text-muted">No expiry date</small>'}
+                </div>
+            `;
+        });
+        html += '</div></div>';
+        listDiv.innerHTML = html;
+    }
+
+    // Finish adding certificates
+    function finishAddingCertificates() {
+        window.location.href = `/user/dashboard`;
+    }
+
+    // Finish button - go back to dashboard
+    document.getElementById('finishBtn').addEventListener('click', finishAddingCertificates);
+</script>
+{% endblock %}

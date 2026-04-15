@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SkillTrack - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .login-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .login-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+        .login-card i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .manager-icon {
+            color: #667eea;
+        }
+        .user-icon {
+            color: #28a745;
+        }
+        .login-card h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .login-card p {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-login {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-manager {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-manager:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: scale(1.05);
+            color: white;
+        }
+        .btn-user-login {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .btn-user-login:hover {
+            background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+            transform: scale(1.05);
+            color: white;
+        }
+        .btn-user-register {
+            background: white;
+            color: #28a745;
+            border: 2px solid #28a745;
+        }
+        .btn-user-register:hover {
+            background: #f0f9f5;
+            color: #28a745;
+        }
+        @media (max-width: 768px) {
+            .login-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .login-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="header">
+        <h1>
+            <i class="fas fa-users-cog"></i> SkillTrack
+        </h1>
+        <p>Skills & Certifications Management Platform</p>
+    </div>
+
+    <div class="login-cards">
+        <!-- Manager Login Card -->
+        <div class="login-card">
+            <i class="fas fa-user-tie manager-icon"></i>
+            <h3>Manager Access</h3>
+            <p>Access and manage all associate details, skills, and certifications. Administrative control over the system.</p>
+            <div class="btn-group">
+                <a href="/manager/login" class="btn btn-login btn-manager">
+                    <i class="fas fa-sign-in-alt"></i> Manager Login
+                </a>
+            </div>
+        </div>
+
+        <!-- User Login Card -->
+        <div class="login-card">
+            <i class="fas fa-user user-icon"></i>
+            <h3>User Account</h3>
+            <p>View open positions, manage your profile, and explore career opportunities in the organization.</p>
+            <div class="btn-group">
+                <a href="/user/login" class="btn btn-login btn-user-login">
+                    <i class="fas fa-sign-in-alt"></i> User Login
+                </a>
+                <a href="/user/register" class="btn btn-login btn-user-register">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
